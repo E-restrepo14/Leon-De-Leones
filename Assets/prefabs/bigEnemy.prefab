@@ -368,7 +368,7 @@ CapsuleCollider:
   m_Center: {x: 0, y: 0.86895895, z: 0}
 --- !u!95 &235732849060105784
 Animator:
-  serializedVersion: 3
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -381,10 +381,12 @@ Animator:
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &235732849060105785
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -397,18 +399,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7f280118dd515b4abfe49cc23c8a350, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyMoveSpeed: 4
-  player: {fileID: 0}
   detectionRange: 6
-  estaVivo: 1
-  enemyRb: {fileID: 0}
   arrow: {fileID: 0}
   arrowplace: {fileID: 0}
+  enemyMoveSpeed: 4
   brokenShield: {fileID: 588839478965897008, guid: 21d39c48c010e024e8fd125afba5878b, type: 3}
-  powerUp: {fileID: 3713394955216752930}
+  powerUpSpawnPosition: {fileID: 3713394955216752930}
   item: {fileID: 8472899279899568075, guid: c28d0c295789048498c67dc092f0409d, type: 3}
-  myHudManager: {fileID: 0}
-  hudManagerParent: {fileID: 0}
 --- !u!82 &593555980946703272
 AudioSource:
   m_ObjectHideFlags: 0

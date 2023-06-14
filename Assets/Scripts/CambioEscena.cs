@@ -9,9 +9,4 @@ public class CambioEscena : MonoBehaviour
     {
         SceneManager.LoadScene(nombre);
     }
-
-    public void Reintentar()
-    {
-        print(" inserte codigo de reintentar");
-    }
 }

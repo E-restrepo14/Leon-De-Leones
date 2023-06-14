@@ -4,89 +4,34 @@ using UnityEngine;
 
 public class SpawnManager : MonoBehaviour
 {
-    [SerializeField]
-    private GameObject spawn1;
-
-    [SerializeField]
-    private GameObject spawn2;
-
-    [SerializeField]
-    private GameObject spawn3;
-
-    public List<GameObject> enemigosMuertos;
-
-
+    [SerializeField] List<GameObject> enemySpawns;
+    [SerializeField] List<GameObject> deadEnemies;
 
     void OnTriggerEnter(Collider other)
     {
         if (other.transform.CompareTag("player"))
         {
-            StartCoroutine(SpawnearEnemigos());
+            StartCoroutine(SpawnEnemies());
         }
     }
 
-    // los enemigos deben poder acceder a este script una vez mueran
-    public void AlmacenarSoldadoMuerto(GameObject soldado)
+    public void CollectDeadWarrior(GameObject warrior) // ABSTRACTION
     {
-        enemigosMuertos.Add(soldado);
+        deadEnemies.Add(warrior);
     }
 
-    //=========================================================================================================================================================
-
-  
-
-        // este proceso solo se debe ejecutar cuando le ordenen, para que no espawnee nada antes de tiempo
-    public IEnumerator SpawnearEnemigos()
+    private IEnumerator SpawnEnemies() // ABSTRACTION
     {
-        if(enemigosMuertos.Count >= 3)
+        for(int i = 0; i < 3; i++)
         {
-            print(enemigosMuertos.Count);
-
-
-            print(enemigosMuertos[0]);
-            enemigosMuertos[0].GetComponent<EnemyLogic>().Revivir(spawn1.transform.position);
-
-            print(enemigosMuertos[1]);
-            enemigosMuertos[1].GetComponent<EnemyLogic>().Revivir(spawn2.transform.position);
-
-            print(enemigosMuertos[2]);
-            enemigosMuertos[2].GetComponent<EnemyLogic>().Revivir(spawn3.transform.position);
-
-            enemigosMuertos.Remove(enemigosMuertos[2]);
-            enemigosMuertos.Remove(enemigosMuertos[1]);
-            enemigosMuertos.Remove(enemigosMuertos[0]);
+            deadEnemies[0].GetComponent<EnemyLogic>().Revivir(enemySpawns[i].transform.position);
+            deadEnemies.Remove(deadEnemies[0]);
         }
-
         yield return new WaitForSeconds(8);
-
-        if (enemigosMuertos.Count >= 3)
+        for (int i = 0; i < 3; i++)
         {
-            print(enemigosMuertos.Count);
-
-            print(enemigosMuertos[0]);
-            enemigosMuertos[0].GetComponent<EnemyLogic>().Revivir(spawn1.transform.position);
-
-            print(enemigosMuertos[1]);
-            enemigosMuertos[1].GetComponent<EnemyLogic>().Revivir(spawn2.transform.position);
-
-            print(enemigosMuertos[2]);
-            enemigosMuertos[2].GetComponent<EnemyLogic>().Revivir(spawn3.transform.position);
-
-            enemigosMuertos.Remove(enemigosMuertos[2]);
-            enemigosMuertos.Remove(enemigosMuertos[1]);
-            enemigosMuertos.Remove(enemigosMuertos[0]);
+            deadEnemies[0].GetComponent<EnemyLogic>().Revivir(enemySpawns[i].transform.position);
+            deadEnemies.Remove(deadEnemies[0]);
         }
     }
-
-
-
-    // + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +  en una lista se puede acceder al numero de elementos que almacena.
-    //  int j = UnityEngine.Random.Range(0, enemigosMuertos.Count);
-
-    // + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +  en una lista se pueden eliminar elementos que esten almacenados en ella.
-    // enemigosMuertos.Remove(enemigosMuertos[j2]);
-
-    // + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + en una lista se puede acceder a un elemento especifico almacenado en ella.
-    // (enemigosMuertos[j2]);
-
 }

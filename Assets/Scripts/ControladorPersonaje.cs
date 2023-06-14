@@ -15,36 +15,36 @@ public class ControladorPersonaje : MonoBehaviour
     private GameObject brokenShield;
     [SerializeField]
     private HudManager myHudManager;
-    public GameObject hudManagerParent;
 
     [SerializeField]
     private GameObject dagaArrojadiza;
 
     // lo va a cambiar la clase enemigo por lo que debe ser publico
-    public bool aunTieneEscudo;
+    public bool hasShield;
     [SerializeField]
-    private bool aunTieneDaga;
+    private bool hasDagger;
     [SerializeField]
     private bool lanzoEscudo;
     [SerializeField]
     private bool lanzoLaDaga;
 
-    public bool isGameOver;
-    public GameObject dangerSignal;
-    public GameObject dodgeSignal;
-    public float playerLife = 10f;
+    public GameObject hudManagerParent;
+    [SerializeField] GameObject dangerSignal;
+    [SerializeField] GameObject dodgeSignal;
     public Animator animator;
-    float smooth = 5.0f;
+    public float playerLife = 10f;
+    public float jumpForce = 250f;
+    public bool hasLanded;
+    public bool isGameOver;
+
     Rigidbody m_Rigidbody;
-    public float m_Thrust = 20f;
-    public bool canJump;
     Vector3 initialPosition;
 
     private void Start()
     {
         myHudManager = hudManagerParent.GetComponent<HudManager>();
-        aunTieneEscudo = false;
-        aunTieneDaga = false;
+        hasShield = false;
+        hasDagger = false;
         lanzoEscudo = false;
         lanzoLaDaga = false;
         initialPosition = transform.position;
@@ -61,15 +61,10 @@ public class ControladorPersonaje : MonoBehaviour
         transform.position = initialPosition;
     }
 
-    void CheckPoint (Transform checkpoint)
-    {
-        initialPosition = checkpoint.position;
-    }
-
     //debe ser publica porque a esto accede el evento de animacion, no cambiarle el nombre
     public void VerificarManoDeEscudo()
     {
-        if (aunTieneEscudo == false & escudoDefensor.GetComponent<Renderer>().isVisible)
+        if (hasShield == false & escudoDefensor.GetComponent<Renderer>().isVisible)
         {
             CambiarEscudoDeMano();
         }
@@ -77,9 +72,9 @@ public class ControladorPersonaje : MonoBehaviour
     }
 
 
-    IEnumerator AgarrarEscudo()
+    IEnumerator TakeShield()
     {
-        aunTieneEscudo = true;
+        hasShield = true;
         animator.SetBool("hadshield", true);
         escudoDefensor.GetComponent<Renderer>().enabled = true;
         escudoAtacante.GetComponent<Renderer>().enabled = false;
@@ -87,9 +82,9 @@ public class ControladorPersonaje : MonoBehaviour
         animator.SetBool("hadshield", false);
     }
 
-    IEnumerator AgarrarDaga()
+    IEnumerator TakeDagger()
     {
-        aunTieneDaga = true;
+        hasDagger = true;
         animator.SetBool("hadshield", true);
         yield return new WaitForSeconds(0);
         animator.SetBool("hadshield", false);
@@ -101,18 +96,16 @@ public class ControladorPersonaje : MonoBehaviour
         escudoAtacante.GetComponent<Renderer>().enabled = true;
     }
 
-    // ojo con cambiarle el nombre porque ya despues no se llama por eventos de animaciones
-    void DestruirEscudos()
+    void DestroyShields()
     {
         escudoDefensor.GetComponent<Renderer>().enabled = false;
-
         escudoAtacante.GetComponent<Renderer>().enabled = false;
     }
 
     // es publico porque se llama sola desde un evento de animacion, no cambiarle el nombre
     public void LanzarODestruirEscudo()
     {
-        if (aunTieneDaga == true & lanzoLaDaga == true)
+        if (hasDagger == true & lanzoLaDaga == true)
         {
             GameObject newDaga = Instantiate(dagaArrojadiza);
             newDaga.transform.position = escudoAtacante.transform.position;
@@ -121,7 +114,7 @@ public class ControladorPersonaje : MonoBehaviour
             Destroy(newDaga, 2);
 
             lanzoLaDaga = false;
-            aunTieneDaga = false;
+            hasDagger = false;
         }
         else
         {
@@ -135,15 +128,15 @@ public class ControladorPersonaje : MonoBehaviour
                 Destroy(newShield, 2);
                 escudoAtacante.GetComponent<Renderer>().enabled = false;
 
-                DestruirEscudos();
+                DestroyShields();
                 lanzoEscudo = false;
-                aunTieneEscudo = false;
+                hasShield = false;
             }
         }
 
-        if (aunTieneEscudo == false)
+        if (hasShield == false)
         {
-            DestruirEscudos();
+            DestroyShields();
         }
         
 
@@ -151,7 +144,7 @@ public class ControladorPersonaje : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        if (canJump == false)
+        if (hasLanded == false)
         {
             animator.Play("Base Layer.idle", 0, 0f);
         }
@@ -159,12 +152,13 @@ public class ControladorPersonaje : MonoBehaviour
         if (collision.gameObject.CompareTag("suelo"))
         {
             animator.SetBool("isjumping", false);
-            canJump = true;
+            hasLanded = true;
         }
 
         if (collision.gameObject.CompareTag("finishTag"))
         {
             playerLife = 20f;
+            VerifyHealth();
         }
 
     }
@@ -180,36 +174,49 @@ public class ControladorPersonaje : MonoBehaviour
         Destroy(newBrokenShield, 1f);
     }
 
+    private void DirectDeath()  // ABSTRACTION
+    {
+        playerLife = 0;
+        VerifyHealth();
+    }
+
+    private void ChangeCheckpoint(Transform newCheckpoint)  // ABSTRACTION
+    {
+        initialPosition = newCheckpoint.position;
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if(other.gameObject.CompareTag("checkpoint"))
         {
-            CheckPoint(other.transform);
+            ChangeCheckpoint(other.transform);
         }
 
         if (other.gameObject.CompareTag("arrowTag") & dodgeSignal.activeSelf == false )
         {
-            if(aunTieneEscudo == true)
+            if(hasShield == true)
             {
-                aunTieneEscudo = false;
+                hasShield = false;
                 InstanciarEscudoRoto(transform);
                 animator.Play("Base Layer.charging", 0, 0f);
-                DestruirEscudos();
+                DestroyShields();
             }
             else
-            RecibirDaño();
+            PlayerTakeDamage();
         }
+
+       
 
         if (other.gameObject.CompareTag("endTag"))
         {
-            playerLife = 0;
+            DirectDeath();
         }
 
         if (other.gameObject.CompareTag("bossTag"))
         {
-            if (canJump == true)
+            if (hasLanded == true)
             {
-                playerLife = 0;
+                DirectDeath();
             }
             else
             {
@@ -220,9 +227,9 @@ public class ControladorPersonaje : MonoBehaviour
 
         if (other.gameObject.CompareTag("shieldTag"))
         {
-            if (aunTieneEscudo == false)
+            if (hasShield == false)
             {
-                StartCoroutine(AgarrarEscudo());
+                StartCoroutine(TakeShield());
                 if (other.GetComponent<AudioSource>() != null)
                 {
                     other.GetComponent<AudioSource>().Play(0);
@@ -233,9 +240,9 @@ public class ControladorPersonaje : MonoBehaviour
 
         if (other.gameObject.CompareTag("dagaTag"))
         {
-            if (aunTieneDaga == false)
+            if (hasDagger == false)
             {
-                StartCoroutine(AgarrarDaga());
+                StartCoroutine(TakeDagger());
                 if (other.GetComponent<AudioSource>() != null)
                 {
                     other.GetComponent<AudioSource>().Play(0);
@@ -245,7 +252,7 @@ public class ControladorPersonaje : MonoBehaviour
         }
     }
 
-    public IEnumerator Rodar()
+    public IEnumerator Rodar() // ABSTRACTION
     {
         dodgeSignal.SetActive(true);
         animator.SetBool("isrolling", true);
@@ -254,45 +261,56 @@ public class ControladorPersonaje : MonoBehaviour
         dodgeSignal.SetActive(false);
     }
 
-    //porque tiene que ser corutina?
-    public IEnumerator Lanzar()
+    public IEnumerator ThrowWeapon()  // ABSTRACTION
     {
-        if (aunTieneDaga == true)
+        if (hasDagger == true)
         {
             lanzoLaDaga = true;
-            StartCoroutine(Atacar());
+            animatePlayerAtack();
         }
-        else
+        else if (hasShield == true)
         {
-            if (aunTieneEscudo == true)
-            {
-                StartCoroutine(Atacar());
-                lanzoEscudo = true;
-            }
+            lanzoEscudo = true;
+            animatePlayerAtack();
         }
         yield return new WaitForSeconds(0);
     }
 
 
-    public void Correr(float direction,float speed) 
+    public void Run(float direction,float speed) // ABSTRACTION
     {
         transform.Translate(speed, 0, 0,Space.World);
         animator.SetBool("isrunning", true);
         animator.SetBool("isidle", false);
-        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, direction, 0), Time.deltaTime* smooth);
+        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, direction, 0), Time.deltaTime* 5f);
     }
 
-    public void RecibirDaño()
+    public void PlayerTakeDamage()
     {
         playerLife -= 2f;
         animator.Play("Base Layer.atack", 0, 0f);
         GetComponent<AudioSource>().Play(0);
-        myHudManager.ModificarScore(-1);
+        VerifyHealth();
+    }
 
+    private void VerifyHealth()
+    {
+        switch (playerLife)
+        {
+            case 0:
+                myHudManager.StartCoroutine(myHudManager.GameOver());
+                break;
+            case 20:
+                myHudManager.WinLevel();
+                break;
+            default:
+                myHudManager.ModifyHud();
+                break;
+        }
     }
 
 
-    public void Detenerse(float direction)
+    public void StopWalk(float direction)  // ABSTRACTION
     {
        animator.SetBool("isrunning", false);
        animator.SetBool("isidle", true);
@@ -300,18 +318,21 @@ public class ControladorPersonaje : MonoBehaviour
     }
 
 
-    public void Jump()
+    public void Jump()  // ABSTRACTION
     {
-        if (canJump == true)
+        if (hasLanded == true)
         {
-            canJump = false;
+            hasLanded = false;
             animator.SetBool("isjumping", true);
-            m_Rigidbody.AddForce(transform.up * m_Thrust);
+            m_Rigidbody.AddForce(transform.up * jumpForce);
         }
-
     }
 
-    public IEnumerator Atacar()
+    public void animatePlayerAtack()
+    {
+        StartCoroutine(Atacar());
+    }
+    private IEnumerator Atacar()  // ABSTRACTION
     {
         gameObject.transform.tag = "espadaTag";
         dangerSignal.SetActive(true);
@@ -320,6 +341,5 @@ public class ControladorPersonaje : MonoBehaviour
         animator.SetBool("isatacking", false);
         gameObject.transform.tag = "player";
         dangerSignal.SetActive(false);
-
     }
 }
