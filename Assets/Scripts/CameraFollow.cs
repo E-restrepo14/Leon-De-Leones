@@ -4,15 +4,18 @@ using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
-    public Vector3 offset;
-    public Transform target;
+    [SerializeField] Vector3 offset;
+    [SerializeField] Transform target;
     float smoothSpeed = 80f;
 
-    // Start is called before the first frame update
-    private void FixedUpdate()
+    private void LateUpdate() 
     {
-        Vector3 desiredPosition = target.position + offset;
-        Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
-        transform.position = smoothedPosition;
+        Vector3 newPosition = target.position + offset;
+        SmoothTranslate(newPosition);
+    }
+
+    void SmoothTranslate(Vector3 desiredPosition) // ABSTRACTION
+    {
+        transform.position = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
     }
 }

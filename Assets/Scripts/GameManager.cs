@@ -7,7 +7,6 @@ public class GameManager : MonoBehaviour
 
     public GameObject player;
     public ControladorPersonaje controlador;
-    public HudManager myHudManager;
     public bool isRunningRight;
     public bool isRunningLeft;
     public float speed = 5f;
@@ -17,9 +16,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         controlador = player.GetComponent<ControladorPersonaje>();
-        myHudManager = GetComponent<HudManager>();
         controlador.isGameOver = false;
-
     }
 
     void Update()
@@ -33,10 +30,10 @@ public class GameManager : MonoBehaviour
             isRunningRight = true;
             if (isRunningLeft == false)
             {
-                controlador.Correr(90f, translation);
+                controlador.Run(90f, translation);
             }
             else
-                controlador.Detenerse(90f);
+                controlador.StopWalk(90f);
         }
 
         if (Input.GetKey(KeyCode.A))
@@ -44,22 +41,22 @@ public class GameManager : MonoBehaviour
             isRunningLeft = true;
             if (isRunningRight == false)
             {
-                controlador.Correr(-90f, translation);
+                controlador.Run(-90f, translation);
             }
             else
-                controlador.Detenerse(-90f);
+                controlador.StopWalk(-90f);
         }
 
         if (Input.GetKeyUp(KeyCode.D))
         {
             isRunningRight = false;
-            controlador.Detenerse(90f);
+            controlador.StopWalk(90f);
         }
 
         if (Input.GetKeyUp(KeyCode.A))
         {
             isRunningLeft = false;
-            controlador.Detenerse(-90f);
+            controlador.StopWalk(-90f);
         }
 
         if (Input.GetKeyDown(KeyCode.Space))
@@ -69,37 +66,17 @@ public class GameManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.CapsLock))
         {
-            controlador.StartCoroutine(controlador.Lanzar());
+            controlador.StartCoroutine(controlador.ThrowWeapon());
         }
 
         if (Input.GetKeyDown(KeyCode.S))
         {
             controlador.StartCoroutine(controlador.Rodar());
         }
-      
 
         if (Input.GetKeyDown(KeyCode.W))
         {
-            controlador.StartCoroutine(controlador.Atacar());
-        }
-
-        myHudManager.ModifyHud();
-        if(controlador.playerLife <=0)
-        {
-            if(controlador.isGameOver == false)
-            {
-                myHudManager.StartCoroutine(myHudManager.GameOver());
-            }
-            controlador.isGameOver = true;
-        }
-
-        if (controlador.playerLife > 15)
-        {
-            if (controlador.isGameOver == false)
-            {
-                myHudManager.WinLevel();
-            }
-            controlador.isGameOver = true;
+            controlador.animatePlayerAtack();
         }
     }
 }
